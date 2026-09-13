@@ -32,11 +32,11 @@ CHUNK_OVERLAP = 200
 # -------------------------
 # Data Directory
 # -------------------------
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = BASE_DIR / "document"
 
-COLLECTION_NAME = "documents"
+COLLECTION_NAME = "document"
 
-documents = None 
+document = None 
 chunks = None
 
 embedding_model = None
