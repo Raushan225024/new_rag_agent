@@ -30,58 +30,35 @@ if not SUPABASE_KEY:
 supabase: Client | None = None
 
 
-# Create Supabase client
-try:
+def connect_supabase():
 
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        raise ValueError(
-            "Missing Supabase environment variables"
-        )
-
-    supabase = create_client(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    )
-
-    logger.info("Supabase client created successfully")
-
-
-except Exception as e:
-
-    logger.error(
-        f"Failed to create Supabase client: {e}"
-    )
-
-
-# Test database connection
-def test_supabase_connection():
-
-    if supabase is None:
-        logger.error(
-            "Supabase client is not initialized"
-        )
-        return False
+    global supabase
 
     try:
 
-        response = (
-            supabase
-            .table("documents")
-            .select("id")
-            .limit(1)
-            .execute()
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            raise ValueError(
+                "SUPABASE_URL or SUPABASE_KEY is missing"
+            )
+
+        # Create Supabase client
+        supabase = create_client(
+            SUPABASE_URL,
+            SUPABASE_KEY
         )
 
-        logger.info(
-            "Supabase database connected successfully"
-        )
+        # Test database connection
+       
 
-        return True
+        print("Supabase connection established")
+
+        return supabase
 
     except Exception as e:
 
-        logger.error(
-            f"Supabase database connection failed: {e}"
-        )
+        print("Supabase connection failed")
+        print(f"Error: {e}")
 
-        return False
+        supabase = None
+
+        return None
