@@ -89,22 +89,15 @@ def ask_question(request: QuestionRequest):
             print("Loading embedding model...")
             embedding_model = load_embedding_model()
             print("Embedding model loaded")
+        embadded_question = embedding_model.embed_query(request.question)
+        docs = retrieve_documents(embadded_question)
+        
 
-        documents = retrieve_documents(
-            query=request.question,
-            embedding_model=embedding_model
-        )
-
-        # यदि documents dict हैं तो उन्हें text में convert करो
-        context = "\n\n".join(
-            doc["content"] if isinstance(doc, dict)
-            else doc.page_content
-            for doc in documents
-        )
+        
 
         answer = ask_llm(
             question=request.question,
-            context=context
+            docs=docs
         )
 
         return {
