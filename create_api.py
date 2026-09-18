@@ -9,6 +9,7 @@ import config.project_config as config
 from retrival.retriver import retrieve_documents
 from llmcall.llmcall import ask_llm
 from retrival.question_embed import load_embedding_model
+embadding_model = None
 
 
 # ---------------------------------
@@ -20,7 +21,7 @@ async def lifespan(app: FastAPI):
 
     print("Loading embedding model...")
 
-    load_embedding_model()
+    #load_embedding_model()
 
     print("Embedding model loaded successfully")
 
@@ -80,44 +81,38 @@ def home():
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
+    global embedding_model
 
-    question = request.question.strip()
+    try:
+        # First request पर model load होगा
+        if embedding_model is None:
+            print("Loading embedding model...")
+            embedding_model = load_embedding_model()
+            print("Embedding model loaded")
 
-    if not question:
+        documents = retrieve_documents(
+            query=request.question,
+            embedding_model=embedding_model
+        )
+
+        # यदि documents dict हैं तो उन्हें text में convert करो
+        context = "\n\n".join(
+            doc["content"] if isinstance(doc, dict)
+            else doc.page_content
+            for doc in documents
+        )
+
+        answer = ask_llm(
+            question=request.question,
+            context=context
+        )
 
         return {
-            "error": "Question cannot be empty"
+            "question": request.question,
+            "answer": answer
         }
 
-
-    # Get embedding model
-
-    model = config.embedding_model
-
-    print(f"Model: {model}")
-
-
-    # Convert question into embedding
-
-    embedded_question = model.embed_query(question)
-
-
-    # Retrieve documents from Supabase
-
-    docs = retrieve_documents(embedded_question)
-
-
-    # Send question + documents to LLM
-
-    answer = ask_llm(question, docs)
-
-
-    # Return response
-
-    return {
-
-        "question": question,
-
-        "answer": answer
-
-    }
+    except Exception as error:
+        print("Error:", repr(error))
+        
+        
