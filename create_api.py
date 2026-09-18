@@ -91,13 +91,13 @@ def ask_question(request: QuestionRequest):
             print("Embedding model loaded")
         embadded_question = embedding_model.embed_query(request.question)
         docs = retrieve_documents(embadded_question)
-        
+        question = request.question
 
         
 
         answer = ask_llm(
-            question=request.question,
-            docs=docs
+            question,
+            docs
         )
 
         return {
