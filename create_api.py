@@ -9,7 +9,7 @@ import config.project_config as config
 from retrival.retriver import retrieve_documents
 from llmcall.llmcall import ask_llm
 from retrival.question_embed import load_embedding_model
-embadding_model = None
+model = None
 
 
 # ---------------------------------
@@ -81,31 +81,71 @@ def home():
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
-    global embedding_model
+    global model
 
     try:
-        # First request पर model load होगा
-        if embedding_model is None:
-            print("Loading embedding model...")
-            embedding_model = load_embedding_model()
-            print("Embedding model loaded")
-        embadded_question = embedding_model.embed_query(request.question)
-        docs = retrieve_documents(embadded_question)
-        question = request.question
+        print("\n========== ASK REQUEST ==========")
+        print("Question:", request.question)
 
-        
+        # 1. Load embedding model
+        if model is None:
+            print("Loading embedding model...")
+
+            load_embedding_model()
+            model = config.embedding_model
+
+            print("Embedding model loaded")
+
+        # 2. Generate question embedding
+        print("Generating question embedding...")
+
+        embedded_question = model.embed_query(
+            request.question
+        )
+
+        print(
+            "Embedding generated. Length:",
+            len(embedded_question)
+        )
+
+        # 3. Retrieve documents from Supabase
+        print("Retrieving documents from Supabase...")
+
+        docs = retrieve_documents(embedded_question)
+
+        print("Retrieved documents:")
+        print(docs)
+
+        # Check retrieved documents
+        if not docs:
+            print("No documents retrieved")
+
+            return {
+                "question": request.question,
+                "answer": "No relevant documents found."
+            }
+
+        # 4. Call LLM
+        print("Calling LLM...")
 
         answer = ask_llm(
-            question,
+            request.question,
             docs
         )
 
+        print("LLM answer:")
+        print(answer)
+
+        # 5. Return response
         return {
             "question": request.question,
             "answer": answer
         }
 
     except Exception as error:
-        print("Error:", repr(error))
-        
-        
+
+        print("ERROR OCCURRED:", repr(error))
+
+        return {
+            "error": str(error)
+        }
