@@ -21,6 +21,10 @@ def create_chunks():
     )
 
     # Create chunks
-    config.chunks = splitter.split_documents(config.document)
+    chunks = splitter.split_documents(config.document)
+    config.chunks = [
+    chunk.page_content
+    for chunk in chunks
+    ]
 
     return config.chunks
