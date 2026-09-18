@@ -48,7 +48,7 @@ def generate_embeddings(chunks, batch_size=32):
 
         # Extract text from Document objects
         batch_texts = [
-            chunk.page_content
+            chunk
             for chunk in batch
         ]
 
