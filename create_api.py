@@ -8,8 +8,7 @@ import config.project_config as config
 
 from retrival.retriver import retrieve_documents
 from llmcall.llmcall import ask_llm
-from retrival.question_embed import load_embedding_model
-model = None
+from retrival.text_embed_api import text_to_vector
 
 
 # ---------------------------------
@@ -81,25 +80,19 @@ def home():
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
-    global model
+    
 
     try:
         print("\n========== ASK REQUEST ==========")
         print("Question:", request.question)
 
         # 1. Load embedding model
-        if model is None:
-            print("Loading embedding model...")
-
-            load_embedding_model()
-            model = config.embedding_model
-
-            print("Embedding model loaded")
+        
 
         # 2. Generate question embedding
         print("Generating question embedding...")
 
-        embedded_question = model.embed_query(
+        embedded_question = text_to_vector(
             request.question
         )
 
